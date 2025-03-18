@@ -1,90 +1,123 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
-import { format } from 'date-fns'
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { format } from 'date-fns';
 
 export default function MyBookings() {
-  const [bookings, setBookings] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchBookings()
-  }, [])
+    fetchBookings();
+  }, []);
 
   async function fetchBookings() {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
         .eq('user_id', user.id)
-        .order('travel_date', { ascending: true })
+        .order('travel_date', { ascending: true });
 
-      if (error) throw error
+      if (error) throw error;
 
-      setBookings(data)
+      setBookings(data);
     } catch (error) {
-      setError(error.message)
+      setError(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
-  if (loading) return <div className="text-center">Loading...</div>
-  if (error) return <div className="text-red-600">{error}</div>
+  if (loading) return <div style={styles.loading}>Loading...</div>;
+  if (error) return <div style={styles.error}>{error}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">My Bookings</h2>
+    <div style={styles.container}>
+      <h2 style={styles.heading}>My Bookings</h2>
       {bookings.length === 0 ? (
-        <p className="text-center text-gray-600">No bookings found</p>
+        <p style={styles.noBookings}>No bookings found</p>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Route
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Seat
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vehicle
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Route</th>
+              <th style={styles.th}>Date</th>
+              <th style={styles.th}>Seat</th>
+              <th style={styles.th}>Vehicle</th>
+              <th style={styles.th}>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookings.map((booking) => (
+              <tr key={booking.id} style={styles.tr}>
+                <td style={styles.td}>{booking.route_from} to {booking.route_to}</td>
+                <td style={styles.td}>{format(new Date(booking.travel_date), 'MMM dd, yyyy')}</td>
+                <td style={styles.td}>Seat {booking.seat_number}</td>
+                <td style={styles.td}>{booking.vehicle_type}</td>
+                <td style={styles.td}>KES {booking.price}</td>
               </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {bookings.map((booking) => (
-                <tr key={booking.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {booking.route_from} to {booking.route_to}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {format(new Date(booking.travel_date), 'MMM dd, yyyy')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    Seat {booking.seat_number}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {booking.vehicle_type}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    KES {booking.price}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
-  )
+  );
 }
+
+const styles = {
+  container: {
+    padding: '2rem',
+    maxWidth: '1000px',
+    margin: '0 auto',
+  },
+  heading: {
+    fontSize: '2rem',
+    color: '#333',
+    marginBottom: '1.5rem',
+    textAlign: 'center',
+  },
+  loading: {
+    textAlign: 'center',
+    fontSize: '1.2rem',
+    color: '#555',
+  },
+  error: {
+    textAlign: 'center',
+    color: '#ff0000',
+    backgroundColor: '#ffe6e6',
+    padding: '1rem',
+    borderRadius: '4px',
+    margin: '2rem auto',
+    maxWidth: '400px',
+  },
+  noBookings: {
+    textAlign: 'center',
+    fontSize: '1.2rem',
+    color: '#555',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    borderRadius: '8px',
+    overflow: 'hidden',
+  },
+  th: {
+    backgroundColor: '#007bff',
+    color: '#fff',
+    padding: '1rem',
+    textAlign: 'left',
+  },
+  tr: {
+    backgroundColor: '#fff',
+    borderBottom: '1px solid #f0f0f0',
+    transition: 'background-color 0.3s ease',
+  },
+  td: {
+    padding: '1rem',
+    color: '#555',
+  },
+};

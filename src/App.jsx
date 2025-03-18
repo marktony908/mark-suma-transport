@@ -27,30 +27,26 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar session={session} />
-        <div className="container mx-auto px-4 py-8">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route
-              path="/login"
-              element={!session ? <Login /> : <Navigate to="/booking" />}
-            />
-            <Route
-              path="/register"
-              element={!session ? <Register /> : <Navigate to="/booking" />}
-            />
-            <Route
-              path="/booking"
-              element={session ? <BookingPage /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/my-bookings"
-              element={session ? <MyBookings /> : <Navigate to="/login" />}
-            />
-          </Routes>
-        </div>
-      </div>
+      <Navbar session={session} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route
+          path="/login"
+          element={!session ? <Login /> : <Navigate to="/booking" />}
+        />
+        <Route
+          path="/register"
+          element={!session ? <Register /> : <Navigate to="/booking" />}
+        />
+        <Route
+          path="/booking"
+          element={session ? <BookingPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/my-bookings"
+          element={session ? <MyBookings /> : <Navigate to="/login" />}
+        />
+      </Routes>
     </Router>
   )
 }
