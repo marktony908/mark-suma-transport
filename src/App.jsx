@@ -1,29 +1,19 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { supabase } from './lib/supabase'
-import Navbar from './components/Navbar'
-import Login from './components/Login'
-import Register from './components/Register'
-import Home from './components/Home'
-import BookingPage from './components/BookingPage'
-import MyBookings from './components/MyBookings'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import Login from './components/Login';
+import Register from './components/Register';
+import Home from './components/Home';
+import BookingPage from './components/BookingPage';
+import MyBookings from './components/MyBookings';
 
 function App() {
-  const [session, setSession] = useState(null)
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+    const storedSession = sessionStorage.getItem('session');
+    setSession(storedSession ? JSON.parse(storedSession) : null);
+  }, []);
 
   return (
     <Router>
@@ -36,7 +26,7 @@ function App() {
         />
         <Route
           path="/register"
-          element={!session ? <Register /> : <Navigate to="/booking" />}
+          element={!session ? <Register /> : <Navigate to="/login" />}
         />
         <Route
           path="/booking"
@@ -48,7 +38,7 @@ function App() {
         />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,26 +1,35 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      setError(null);
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-    } catch (error) {
-      setError(error.message);
-    } finally {
+    setLoading(true);
+    setError(null);
+
+    const storedUser = sessionStorage.getItem('user');
+
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+
+      if (parsedUser.email === email && parsedUser.password === password) {
+        sessionStorage.setItem('session', JSON.stringify(parsedUser)); 
+        setLoading(false);
+        alert('Login successful!');
+        navigate('/booking'); 
+      } else {
+        setLoading(false);
+        setError('Invalid email or password.');
+      }
+    } else {
       setLoading(false);
+      setError('No user found. Please sign up first.');
     }
   };
 
@@ -50,11 +59,7 @@ export default function Login() {
               required
             />
           </div>
-          <button
-            type="submit"
-            style={styles.button}
-            disabled={loading}
-          >
+          <button type="submit" style={styles.button} disabled={loading}>
             {loading ? 'Loading...' : 'Login'}
           </button>
         </form>
@@ -69,8 +74,8 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    backgroundColor: '#f0f2f5', // Light gray background
-    backgroundImage: 'url("https://www.transparenttextures.com/patterns/always-grey.png")', // Subtle texture
+    backgroundColor: '#f0f2f5',
+    backgroundImage: 'url("https://www.transparenttextures.com/patterns/always-grey.png")',
     padding: '1rem',
   },
   loginBox: {

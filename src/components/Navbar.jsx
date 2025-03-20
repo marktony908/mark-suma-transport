@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 
 function Navbar({ session }) {
   const handleLogout = async () => {

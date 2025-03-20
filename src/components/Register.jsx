@@ -1,32 +1,35 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
+  const handleRegister = (e) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      setError(null);
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-          },
-        },
-      });
-      if (error) throw error;
-    } catch (error) {
-      setError(error.message);
-    } finally {
+    setLoading(true);
+    setError(null);
+
+    if (password !== confirmPassword) {
       setLoading(false);
+      setError('Passwords do not match.');
+      return;
+    }
+
+    const storedUser = JSON.parse(sessionStorage.getItem('user'));
+    if (storedUser && storedUser.email === email) {
+      setLoading(false);
+      setError('User already exists. Please log in.');
+    } else {
+      const newUser = { email, password };
+      sessionStorage.setItem('user', JSON.stringify(newUser));
+      setLoading(false);
+      alert('Registration successful! Redirecting to login...');
+      navigate('/login');
     }
   };
 
@@ -36,16 +39,6 @@ export default function Register() {
         <h2 style={styles.heading}>Register</h2>
         {error && <div style={styles.error}>{error}</div>}
         <form onSubmit={handleRegister} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Full Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={styles.input}
-              required
-            />
-          </div>
           <div style={styles.formGroup}>
             <label style={styles.label}>Email</label>
             <input
@@ -66,12 +59,18 @@ export default function Register() {
               required
             />
           </div>
-          <button
-            type="submit"
-            style={styles.button}
-            disabled={loading}
-          >
-            {loading ? 'Loading...' : 'Register'}
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              style={styles.input}
+              required
+            />
+          </div>
+          <button type="submit" style={styles.button} disabled={loading}>
+            {loading ? 'Registering...' : 'Register'}
           </button>
         </form>
       </div>
@@ -85,8 +84,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    backgroundColor: '#f0f2f5', // Light gray background
-    backgroundImage: 'url("https://www.transparenttextures.com/patterns/always-grey.png")', // Subtle texture
+    backgroundColor: '#f0f2f5',
     padding: '1rem',
   },
   registerBox: {
@@ -133,7 +131,7 @@ const styles = {
   },
   button: {
     padding: '0.75rem',
-    backgroundColor: '#007bff',
+    backgroundColor: '#28a745',
     color: '#fff',
     border: 'none',
     borderRadius: '4px',
